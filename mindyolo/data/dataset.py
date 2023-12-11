@@ -309,6 +309,8 @@ class COCODataset:
                 if func_name == "letterbox":
                     new_shape = self.img_size if not self.rect else self.batch_shapes[self.batch[index]]
                     sample = self.letterbox(sample, new_shape, **_trans)
+                if func_name == "mosaic":
+                    sample = self.mosaic(sample, **_trans)
                 else:
                     sample = getattr(self, func_name)(sample, **_trans)
 

@@ -76,9 +76,12 @@ def get_parser_train(parents=None):
     # args for ModelArts
     parser.add_argument("--enable_modelarts", type=ast.literal_eval, default=False, help="enable modelarts")
     parser.add_argument("--data_url", type=str, default="", help="ModelArts: obs path to dataset folder")
-    parser.add_argument("--ckpt_url", type=str, default="", help="ModelArts: obs path to pretrain model checkpoint file")
-    parser.add_argument("--multi_data_url", type=str, default="", help="ModelArts: list of obs paths to multi-dataset folders")
-    parser.add_argument("--pretrain_url", type=str, default="", help="ModelArts: list of obs paths to multi-pretrain model files")
+    parser.add_argument("--ckpt_url", type=str, default="",
+                        help="ModelArts: obs path to pretrain model checkpoint file")
+    parser.add_argument("--multi_data_url", type=str, default="",
+                        help="ModelArts: list of obs paths to multi-dataset folders")
+    parser.add_argument("--pretrain_url", type=str, default="",
+                        help="ModelArts: list of obs paths to multi-pretrain model files")
     parser.add_argument("--train_url", type=str, default="", help="ModelArts: obs path to output folder")
     parser.add_argument("--data_dir", type=str, default="/cache/data/",
                         help="ModelArts: local device path to dataset folder")
@@ -124,13 +127,13 @@ def train(args):
     # Create Dataloaders
     transforms = args.data.train_transforms
     stage_dataloaders = []
-    stage_epochs = [args.epochs,] if not isinstance(transforms, dict) else transforms['stage_epochs']
-    stage_transforms = [transforms,] if not isinstance(transforms, dict) else transforms['trans_list']
+    stage_epochs = [args.epochs, ] if not isinstance(transforms, dict) else transforms['stage_epochs']
+    stage_transforms = [transforms, ] if not isinstance(transforms, dict) else transforms['trans_list']
     assert len(stage_epochs) == len(stage_transforms), "The length of transforms and stage_epochs is not equal."
     assert sum(stage_epochs) == args.epochs, f"Stage epochs [{sum(stage_epochs)}] not equal args.epochs [{args.epochs}]"
     for stage in range(len(stage_epochs)):
         _dataset = COCODataset(
-            dataset_path=args.data.train_set,
+            dataset_path="F://Lenevo//Desktop//datasets//coco",
             img_size=args.img_size,
             transforms_dict=stage_transforms[stage],
             is_training=True,
@@ -155,6 +158,10 @@ def train(args):
             num_parallel_workers=args.data.num_parallel_workers,
             python_multiprocessing=True,
         )
+        # 取出一个batch
+        for data in _dataloader.create_dict_iterator():
+            print(data)
+            break
         stage_dataloaders.append(_dataloader)
     dataloader = stage_dataloaders[0] if len(stage_dataloaders) == 1 else ms.dataset.ConcatDataset(stage_dataloaders)
     steps_per_epoch = dataloader.get_dataset_size() // args.epochs
